@@ -1,4 +1,4 @@
-# vscode-better-alpine
+# vscode-better-alpine [🚧WIP🚧]
 A VS Code extension for better Alpine.js support.
 
 ## Tools
