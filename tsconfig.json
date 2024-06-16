@@ -1,0 +1,13 @@
+{
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "module": "nodenext",
+    "paths": {
+      "@better-alpine/language-server": [
+        "./packages/server/src"
+      ],
+    },
+  }
+}

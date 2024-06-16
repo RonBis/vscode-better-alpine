@@ -1,0 +1,37 @@
+{
+  "name": "vscode-better-alpine",
+  "displayName": "Better Alpine",
+  "description": "A VS Code extension for better Alpine.js support.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "activationEvents": [
+    "onLanguage:html"
+  ],
+  "main": "./dist/client.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "html",
+        "extensions": [
+          ".html"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build",
+    "watch": "pnpm build -- --watch",
+    "pack": "pnpm build && vsce package --pre-release",
+    "release": "pnpm build && vsce publish --pre-release"
+  },
+  "devDependencies": {
+    "@better-alpine/language-server": "workspace:*",
+    "@types/vscode": "^1.90.0",
+    "@volar/language-server": "^2.3.0",
+    "@volar/vscode": "^2.3.0",
+    "esbuild": "^0.21.5",
+    "vscode-languageclient": "^9.0.1"
+  }
+}

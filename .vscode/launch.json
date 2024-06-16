@@ -1,0 +1,37 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--disable-updates",
+        "--disable-workspace-trust",
+        // "--profile-temp",
+        "--skip-release-notes",
+        "--skip-welcome",
+        "--extensionDevelopmentPath=${workspaceRoot}/packages/client",
+        "--folder-uri=${workspaceRoot}/sample",
+      ],
+      "outFiles": [
+        "${workspaceRoot}/packages/client/dist/*.js"
+      ],
+      "preLaunchTask": {
+        "type": "npm",
+        "script": "watch"
+      }
+    },
+    {
+      "name": "Attach to Server",
+      "type": "node",
+      "request": "attach",
+      "port": 6009,
+      "restart": true,
+      "outFiles": [
+        "${workspaceRoot}/packages/client/dist/*.js"
+      ]
+    },
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@better-alpine/language-server",
+  "version": "0.0.1",
+  "files": [
+    "out/**/*.js",
+    "out/**/*.d.ts"
+  ],
+  "bin": {
+    "alpinels": "./bin/alpinels.js"
+  },
+  "dependencies": {
+    "@volar/language-core": "^2.3.0",
+    "@volar/language-server": "^2.3.0",
+    "@volar/language-service": "^2.3.0",
+    "volar-service-css": "^0.0.51",
+    "volar-service-html": "^0.0.51",
+    "vscode-html-languageservice": "^5.2.0",
+    "vscode-languageserver-textdocument": "^1.0.11",
+    "vscode-uri": "^3.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2"
+  }
+}
