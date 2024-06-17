@@ -1,103 +1,89 @@
+import { writeFileSync } from "fs";
 import * as html from "vscode-html-languageservice";
-import { AlpineSymbols, type AlpineSymbolTable } from "./types";
-
-let symbolTable: AlpineSymbolTable = [];
+import { type AlpineSymbolTable, type AlpineAttribute } from "./types";
 
 const htmlLs = html.getLanguageService();
+const symbolTablePath = __dirname + "/../../../sample/symbol-table.json";
 
 export function generateAlpineSymbols(content: string) {
-  const document = htmlLs.parseHTMLDocument(
-    html.TextDocument.create("", "html", 0, content)
-  );
+  const document = htmlLs.parseHTMLDocument(html.TextDocument.create("", "html", 0, content));
   // if markup is empty, return
   if (document.roots.length === 0) {
-    return;
+    return [];
   }
-
-  // delete existing symbol table
-  symbolTable = [];
-  generateSymbolTable(document.roots[0], content);
-
-  // writeFileSync(
-  //   symbolTablePath,
-  //   JSON.stringify(symbolTable).replace(/\\"/g, ""), // remove extra quotes ""
-  //   {
-  //     flag: "w",
-  //     encoding: "utf-8",
-  //   }
-  // );
+  const symbolTable = generateSymbolTable(content);
+  writeFileSync(
+    symbolTablePath,
+    JSON.stringify(symbolTable).replace(/\\"/g, ""), // remove extra quotes ""
+    { flag: "w", encoding: "utf-8" }
+  );
   return symbolTable;
 }
 
-function generateSymbolTable(root: html.Node, htmlContent: string) {
-  const { attributes: attributesAll, start, end, startTagEnd, children } = root;
-  if (!attributesAll) {
-    return;
-  }
+const regex =
+  /(x-(data|init|show|bind|on|model|text|html|ref|for|if|cloak|spread|effect|transition)|(@\w+)|(x-on:\w+))/i;
 
-  let symbols: AlpineSymbols = { attributes: [], scope: { start, end } };
+function generateSymbolTable(documentContent: string): AlpineSymbolTable {
+  let symbolTable: AlpineSymbolTable = [];
 
-  // filter Alpine attributes
-  Object.entries(attributesAll).forEach(([attr, value], i) => {
-    const regex =
-      /(x-(data|init|show|bind|on|model|text|html|ref|for|if|cloak|spread|effect|transition)|(@\w+)|(x-on:\w+))/i;
-    const regexSearchDomain = htmlContent.substring(start, startTagEnd);
-    // if no alpine attribute is found, skip
-    if (regex.exec(regexSearchDomain).length === 0) {
-      return;
+  const scanner = htmlLs.createScanner(documentContent);
+  let lastTagName: string | null = null;
+  let lastTagOpenOffset: number | null = null;
+  let lastAttributeName: string | null = null;
+
+  let tagPath: string[] = [];
+  let tagAttributes: AlpineAttribute[] = [];
+  let _tagEndRef: number[] = [];
+
+  let token = scanner.scan();
+  while (token !== html.TokenType.EOS) {
+    switch (token) {
+      case html.TokenType.StartTag:
+        tagAttributes = []; // clear tag attributes of previous tag
+        lastTagName = scanner.getTokenText();
+        lastTagOpenOffset = scanner.getTokenOffset();
+        lastAttributeName = null;
+        tagPath.push(lastTagName);
+        break;
+      case html.TokenType.AttributeName:
+        lastAttributeName = scanner.getTokenText();
+        const didMatch = Boolean(regex.exec(lastAttributeName)?.length);
+        if (!didMatch) {
+          lastAttributeName = null;
+        }
+        break;
+      case html.TokenType.AttributeValue:
+        // if last attribute was not an alpine attribute, skip
+        if (lastAttributeName === null) {
+          break;
+        }
+        tagAttributes.push({
+          x_attr: lastAttributeName,
+          x_value: scanner.getTokenText().slice(1, -1), // remove extra quotes
+          textrange: {
+            start: scanner.getTokenOffset() + 1, // ignore quote in js virtual code
+            end: scanner.getTokenEnd() - 1, // ignore quote in js virtual code
+          },
+        });
+        break;
+      case html.TokenType.StartTagClose:
+        symbolTable.push({
+          attributes: tagAttributes,
+          path: [...tagPath], // to prevent shallow copy
+          scope: {
+            start: lastTagOpenOffset!, // test this(!) later with sample html: ">hello</p>"
+            end: 0, // set later in tag end using _tagEndRef
+          },
+        });
+        _tagEndRef.push(symbolTable.length - 1);
+        break;
+      case html.TokenType.EndTag:
+        tagPath.splice(-1); // remove last element
+        symbolTable[_tagEndRef.at(-1)!].scope.end = scanner.getTokenEnd();
+        _tagEndRef.splice(-1);
+        break;
     }
-
-    // find starting index of attribute value
-    const startIndex =
-      regexSearchDomain.indexOf(`${attr}=${value}`) + attr.length + 2; // +2 is for `=` and `"`
-    const endIndex = startIndex + value.length;
-    symbols.attributes[i] = {
-      x_attr: attr,
-      x_value: value,
-      textrange: { start: startIndex, end: endIndex },
-    };
-
-    // switch (attr) {
-    //   case "x-data":
-    //   case "x-init":
-    //   case "x-show":
-    //   case "x-bind":
-    //   case "x-on":
-    //   case "x-model":
-    //   case "x-text":
-    //   case "x-html":
-    //   case "x-ref":
-    //   case "x-for":
-    //   case "x-if":
-    //   case "x-cloak":
-    //   case "x-spread":
-    //   case "x-effect":
-    //   case "x-transition":
-    //     symbols.attributes[i].x_attr = attr;
-    //     symbols.attributes[i].x_value = value;
-    //   default:
-    //     if (attr.startsWith("x-on") || attr.startsWith("@")) {
-    //       symbols.attributes[i].x_attr = attr;
-    //       symbols.attributes[i].x_value = value;
-    //     }
-    //     // attribute text range should be in between 'start' and 'startTagEnd'
-    //     const regex =
-    //       /x-(data|init|show|bind|on|model|text|html|ref|for|if|cloak|spread|effect|transition)="([^"]+)"/;
-
-    //     const regexSearchDomain = htmlContent.substring(start, startTagEnd);
-    //     const match = regex.exec(regexSearchDomain)[2]; // match cannot be undefined or null
-
-    //     const startIndex = regexSearchDomain.indexOf(match);
-    //     symbols.attributes[i].textrange = {
-    //       start: startIndex,
-    //       end: startIndex + match.length,
-    //     };
-    // }
-  });
-  symbolTable.push(symbols);
-
-  if (children.length === 0) return;
-  for (const el of children) {
-    generateSymbolTable(el, htmlContent); // recursive call
+    token = scanner.scan();
   }
+  return symbolTable;
 }

@@ -11,6 +11,7 @@ export type AlpineSymbols = {
     start: number;
     end: number;
   };
+  path: string[]
 };
 /**
  * Properties for a single alpine attribute.

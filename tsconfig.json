@@ -3,6 +3,7 @@
     "node_modules"
   ],
   "compilerOptions": {
+    "strict": true,
     "module": "nodenext",
     "paths": {
       "@better-alpine/language-server": [

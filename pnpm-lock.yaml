@@ -54,7 +54,7 @@ importers:
         specifier: ^5.2.0
         version: 5.2.0
       vscode-languageserver-textdocument:
-        specifier: ''
+        specifier: ^1.0.11
         version: 1.0.11
       vscode-uri:
         specifier: ^3.0.8

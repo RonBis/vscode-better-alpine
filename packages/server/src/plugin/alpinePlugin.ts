@@ -3,6 +3,7 @@ import { IScriptSnapshot } from "typescript";
 import { URI } from "vscode-uri";
 import { generateAlpineSymbols } from "./generateAlpineSymbols";
 import { type AlpineSymbolTable } from "./types";
+import log from "../log";
 
 export const alpineLanguagePlugin: LanguagePlugin<URI> = {
   getLanguageId(uri) {
@@ -59,7 +60,7 @@ export class AlpineCode implements VirtualCode {
    * ]
    *
    */
-  // symbolTable: AlpineSymbolTable;
+  symbolTable: AlpineSymbolTable = [];
 
   constructor(public snapshot: IScriptSnapshot) {
     this.mappings = [
@@ -87,15 +88,15 @@ export class AlpineCode implements VirtualCode {
 
   public onSnapshotUpdated() {
     const snapshotContent = this.snapshot.getText(0, this.snapshot.getLength());
-    // this.symbolTable = generateAlpineSymbols(snapshotContent);
-    // this.embeddedCodes = [...getAlpineEmbeddedCodes(this.symbolTable)];
+    this.symbolTable = generateAlpineSymbols(snapshotContent);
+    this.embeddedCodes = [...getAlpineEmbeddedCodes(this.symbolTable)];
   }
 }
 
 function* getAlpineEmbeddedCodes(
   symbolTable: AlpineSymbolTable
 ): Generator<VirtualCode> {
-  for (let i = 0; i < symbolTable?.length; i++) {
+  for (let i = 0; i < symbolTable.length; i++) {
     const tag = symbolTable[i];
     const attributes = tag.attributes;
 

@@ -41,7 +41,7 @@ function getSymbolTable(
   document: TextDocument
 ): AlpineSymbolTable | null {
   const decoded = context.decodeEmbeddedDocumentUri(URI.parse(document.uri));
-  if (!decoded) return; // not an embedded document
+  if (!decoded) return null; // not an embedded document
 
   const virtualCode = context.language.scripts
     .get(decoded[0])

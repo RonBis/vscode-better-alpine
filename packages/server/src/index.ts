@@ -1,8 +1,4 @@
-import {
-  createServer,
-  createConnection,
-  createSimpleProject,
-} from "@volar/language-server/node";
+import { createServer, createConnection, createSimpleProject } from "@volar/language-server/node";
 import { alpineLanguagePlugin } from "./plugin/alpinePlugin";
 import { alpineServicePlugin } from "./service/alpineService";
 
@@ -17,11 +13,7 @@ connection.onInitialize((params) => {
   //   params.locale
   // );
 
-  return server.initialize(
-    params,
-    createSimpleProject([alpineLanguagePlugin]),
-    [alpineServicePlugin]
-  );
+  return server.initialize(params, createSimpleProject([alpineLanguagePlugin]), [alpineServicePlugin]);
 });
 
 connection.onInitialized(server.initialized);
