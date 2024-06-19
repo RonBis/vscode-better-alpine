@@ -1,7 +1,5 @@
-import {
-  LanguageServiceContext,
-  LanguageServicePlugin,
-} from "@volar/language-service";
+import { LanguageServiceContext, LanguageServicePlugin } from "@volar/language-service";
+import { create as createTypeScriptServices } from "volar-service-typescript";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
 import { AlpineCode } from "../plugin/alpinePlugin";
@@ -16,37 +14,30 @@ export const alpineServicePlugin: LanguageServicePlugin = {
   },
   create: (context) => {
     return {
-      provideHover(document, position, token) {
-        const decoded = context.decodeEmbeddedDocumentUri(
-          URI.parse(document.uri)
-        );
-        if (!decoded) {
-          // Not a embedded document
-          return;
-        }
-        const virtualCode = context.language.scripts
-          .get(decoded[0])
-          ?.generated?.embeddedCodes.get(decoded[1]);
-        if (!(virtualCode instanceof AlpineCode)) {
-          return;
-        }
-        return null;
-      },
+      // provideCompletionItems(document, position, context, token) {
+      //   return null;
+      // },
+      // provideHover(document, position, token) {
+      //   const decoded = context.decodeEmbeddedDocumentUri(URI.parse(document.uri));
+      //   if (!decoded) {
+      //     // Not a embedded document
+      //     return;
+      //   }
+      //   const virtualCode = context.language.scripts.get(decoded[0])?.generated?.embeddedCodes.get(decoded[1]);
+      //   if (!(virtualCode instanceof AlpineCode)) {
+      //     return;
+      //   }
+      //   return null;
+      // },
     };
   },
 };
 
-function getSymbolTable(
-  context: LanguageServiceContext,
-  document: TextDocument
-): AlpineSymbolTable | null {
+function getSymbolTable(context: LanguageServiceContext, document: TextDocument): AlpineSymbolTable | null {
   const decoded = context.decodeEmbeddedDocumentUri(URI.parse(document.uri));
   if (!decoded) return null; // not an embedded document
 
-  const virtualCode = context.language.scripts
-    .get(decoded[0])
-    ?.generated?.embeddedCodes.get(decoded[1]);
+  const virtualCode = context.language.scripts.get(decoded[0])?.generated?.embeddedCodes.get(decoded[1]);
   if (!(virtualCode instanceof AlpineCode)) return null;
-
   return virtualCode.symbolTable;
 }

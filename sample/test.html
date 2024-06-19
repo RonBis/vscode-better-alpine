@@ -1,11 +1,26 @@
-<div
-  id
-  x-data="{
-  open: false,
-  get isOpen() { return this.open },
-  toggle() { this.open = ! this.open },
-}"
->
-  <button @click="toggle()">Toggle Content</button>
-  <div x-show="isOpen">Content...</div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>I ❤️ Alpine</title>
+  </head>
+  <body>
+    <div
+      id
+      x-data="{
+        open: false,
+        get isOpen() { return this.open },
+        toggle() { this.open = ! this.open },
+      }"
+    >
+      <div x-show="isOpen">Content...</div>
+      <button @click="toggle()">Show/Hide content</button>
+      <div class="p-1" x-data="{ count: 0 }">
+        <p x-text="'Count: '+count">h</p>
+        <button @click="count++">Increment counter</button>
+      </div>
+    </div>
+  </body>
+  <script src="//unpkg.com/alpinejs" defer></script>
+</html>

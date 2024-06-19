@@ -1,9 +1,14 @@
-import { CodeMapping, LanguagePlugin, VirtualCode } from "@volar/language-core";
-import { IScriptSnapshot } from "typescript";
+import {
+  CodeMapping,
+  LanguagePlugin,
+  TypeScriptExtraServiceScript,
+  VirtualCode,
+  forEachEmbeddedCode,
+} from "@volar/language-core";
+import { IScriptSnapshot, ScriptKind } from "typescript";
 import { URI } from "vscode-uri";
 import { generateAlpineSymbols } from "./generateAlpineSymbols";
 import { type AlpineSymbolTable } from "./types";
-import log from "../log";
 
 export const alpineLanguagePlugin: LanguagePlugin<URI> = {
   getLanguageId(uri) {
@@ -15,6 +20,26 @@ export const alpineLanguagePlugin: LanguagePlugin<URI> = {
     if (languageId === "html") {
       return new AlpineCode(snapshot);
     }
+  },
+  typescript: {
+    extraFileExtensions: [],
+    getServiceScript() {
+      return undefined;
+    },
+    getExtraServiceScripts(fileName, rootVirtualCode) {
+      const scripts: TypeScriptExtraServiceScript[] = [];
+      for (const code of forEachEmbeddedCode(rootVirtualCode)) {
+        if (code.languageId === "javascript") {
+          scripts.push({
+            fileName: `${fileName}.${code.id}.js`,
+            code,
+            extension: ".js",
+            scriptKind: ScriptKind.JS,
+          });
+        }
+      }
+      return scripts;
+    },
   },
 };
 
@@ -93,9 +118,7 @@ export class AlpineCode implements VirtualCode {
   }
 }
 
-function* getAlpineEmbeddedCodes(
-  symbolTable: AlpineSymbolTable
-): Generator<VirtualCode> {
+function* getAlpineEmbeddedCodes(symbolTable: AlpineSymbolTable): Generator<VirtualCode> {
   for (let i = 0; i < symbolTable.length; i++) {
     const tag = symbolTable[i];
     const attributes = tag.attributes;
@@ -105,7 +128,7 @@ function* getAlpineEmbeddedCodes(
 
       yield {
         id: "alpine" + i + j,
-        languageId: "js",
+        languageId: "javascript",
         snapshot: {
           getText: (start, end) => attr.x_value.substring(start, end),
           getLength: () => attr.x_value.length,
