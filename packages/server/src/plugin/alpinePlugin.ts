@@ -86,6 +86,7 @@ export class AlpineCode implements VirtualCode {
    *
    */
   symbolTable: AlpineSymbolTable = [];
+  jsVirtualCode = "";
 
   constructor(public snapshot: IScriptSnapshot) {
     this.mappings = [
@@ -113,43 +114,83 @@ export class AlpineCode implements VirtualCode {
 
   public onSnapshotUpdated() {
     const snapshotContent = this.snapshot.getText(0, this.snapshot.getLength());
-    this.symbolTable = generateAlpineSymbols(snapshotContent);
-    this.embeddedCodes = [...getAlpineEmbeddedCodes(this.symbolTable)];
+    const result = generateAlpineSymbols(snapshotContent);
+    if (!result) {
+      return;
+    }
+    this.symbolTable = result.symbolTable;
+    this.jsVirtualCode = result.jsVirtualCode;
+    this.embeddedCodes = [...getAlpineEmbeddedCodes(this.symbolTable, this.jsVirtualCode)];
   }
 }
 
-function* getAlpineEmbeddedCodes(symbolTable: AlpineSymbolTable): Generator<VirtualCode> {
-  for (let i = 0; i < symbolTable.length; i++) {
-    const tag = symbolTable[i];
-    const attributes = tag.attributes;
+/** old code */
+// function* _getAlpineEmbeddedCodes(symbolTable: AlpineSymbolTable): Generator<VirtualCode> {
+//   for (let i = 0; i < symbolTable.length; i++) {
+//     const tag = symbolTable[i];
+//     const attributes = tag.attributes;
 
-    for (let j = 0; j < attributes.length; j++) {
-      const attr = attributes[j];
+//     for (let j = 0; j < attributes.length; j++) {
+//       const attr = attributes[j];
 
-      yield {
-        id: "alpine" + i + j,
-        languageId: "javascript",
-        snapshot: {
-          getText: (start, end) => attr.x_value.substring(start, end),
-          getLength: () => attr.x_value.length,
-          getChangeRange: () => undefined,
+//       yield {
+//         id: "alpine" + i + j,
+//         languageId: "javascript",
+//         snapshot: {
+//           getText: (start, end) => attr.x_value.substring(start, end),
+//           getLength: () => attr.x_value.length,
+//           getChangeRange: () => undefined,
+//         },
+//         mappings: [
+//           {
+//             sourceOffsets: [attr.textrange.start],
+//             generatedOffsets: [0],
+//             lengths: [attr.x_value.length],
+//             data: {
+//               completion: true,
+//               format: true,
+//               navigation: true,
+//               semantic: true,
+//               structure: true,
+//               verification: true,
+//             },
+//           },
+//         ],
+//       };
+//     }
+//   }
+// }
+
+/** new code */
+function* getAlpineEmbeddedCodes(symbolTable: AlpineSymbolTable, jsVirtualCode: string): Generator<VirtualCode> {
+  const mappings: CodeMapping[] = [];
+  for (const tag of symbolTable) {
+    for (const attr of tag.attributes) {
+      mappings.push({
+        sourceOffsets: [attr.sourceRange.start],
+        lengths: [attr.sourceRange.end - attr.sourceRange.start],
+        generatedOffsets: [attr.generatedRange.start],
+        generatedLengths: [attr.generatedRange.end - attr.generatedRange.start],
+        data: {
+          completion: true,
+          format: true,
+          navigation: true,
+          semantic: true,
+          structure: true,
+          verification: true,
         },
-        mappings: [
-          {
-            sourceOffsets: [attr.textrange.start],
-            generatedOffsets: [0],
-            lengths: [attr.x_value.length],
-            data: {
-              completion: true,
-              format: true,
-              navigation: true,
-              semantic: true,
-              structure: true,
-              verification: true,
-            },
-          },
-        ],
-      };
+      });
     }
   }
+
+  yield {
+    id: "alpine",
+    languageId: "javascript",
+    snapshot: {
+      getText: (start, end) => jsVirtualCode.substring(start, end),
+      getLength: () => jsVirtualCode.length,
+      getChangeRange: () => undefined,
+    },
+    mappings,
+  };
 }

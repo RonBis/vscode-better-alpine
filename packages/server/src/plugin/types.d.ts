@@ -7,19 +7,18 @@ export type AlpineSymbolTable = AlpineSymbols[];
  */
 export type AlpineSymbols = {
   attributes: AlpineAttribute[];
-  scope: {
-    start: number;
-    end: number;
-  };
-  path: string[]
 };
 /**
  * Properties for a single alpine attribute.
  */
 export type AlpineAttribute = {
-  x_attr: string;
-  x_value: string;
-  textrange: {
+  xattr: string;
+  xvalue: string;
+  sourceRange: {
+    start: number;
+    end: number;
+  };
+  generatedRange: {
     start: number;
     end: number;
   };
