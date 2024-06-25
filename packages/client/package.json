@@ -18,6 +18,20 @@
           ".html"
         ]
       }
+    ],
+    "grammars": [
+      {
+        "path": "./syntaxes/injection.json",
+        "scopeName": "html.alpinejs.attribute",
+        "injectTo": [
+          "text.html.derivative",
+          "text.html.php",
+          "text.html.twig"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.inline.alpinejs": "javascript"
+        }
+      }
     ]
   },
   "scripts": {

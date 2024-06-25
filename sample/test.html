@@ -9,13 +9,15 @@
     <div
       id
       x-data="{
+        let: false,
         open: false,
         get isOpen() { return this.open },
         toggle() { this.open = ! this.open },
       }"
     >
+      <p x-text="let = 1; let"></p>
+      <button @click="let i=0;toggle();">Show/Hide content</button>
       <div x-show="isOpen">Content...</div>
-      <button @click="toggle()">Show/Hide content</button>
       <div class="p-1" x-data="{ count: 0, count2: 2 }">
         <p x-text="'Count: '+count">h</p>
         <button @click="count++">Increment counter</button>
